@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events Search</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="search-container">
+        <h1 class="search-title">Events Search</h1>
+        
+        <form id="searchForm">
+            <div class="form-group">
+                <label for="keyword" class="required">Keyword</label>
+                <input type="text" id="keyword" name="keyword" required>
+                <div class="error-tooltip" id="keywordError">Please fill out this field.</div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-col">
+                    <label for="distance">Distance(miles)</label>
+                    <input type="number" id="distance" name="distance" placeholder="10" min="0">
+                </div>
+                <div class="form-col">
+                    <label for="category" class="required">Category</label>
+                    <select id="category" name="category">
+                        <option value="Default">Default</option>
+                        <option value="Music">Music</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Arts">Arts & Theatre</option>
+                        <option value="Film">Film</option>
+                        <option value="Miscellaneous">Miscellaneous</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="autoLocation" name="autoLocation">
+                    <label for="autoLocation" class="checkbox-label">Auto-Detect Location</label>
+                </div>
+                
+                <label for="location" class="required">Location</label>
+                <input type="text" id="location" name="location" required>
+                <div class="error-tooltip" id="locationError">Please fill out this field.</div>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="search-btn">SEARCH</button>
+                <button type="button" class="clear-btn" onclick="clearForm()">CLEAR</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Container -->
+    <div class="results-container" id="resultsContainer">
+        <!-- No Records Found Message -->
+        <div class="no-records" id="noRecords" style="display: none;">
+            No records found
+        </div>
+        
+        <!-- Results Table -->
+        <table class="results-table" id="resultsTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Icon</th>
+                    <th onclick="sortTable(2)">Event</th>
+                    <th onclick="sortTable(3)">Genre</th>
+                    <th onclick="sortTable(4)">Venue</th>
+                </tr>
+            </thead>
+            <tbody id="resultsTableBody">
+                <!-- Dynamic content will be inserted here -->
+            </tbody>
+        </table>
+        
+        <!-- Event Details Card -->
+        <div class="event-details-card" id="eventDetailsCard">
+            <div class="event-details-title" id="eventDetailsTitle">Event Title</div>
+            
+            <div class="event-details-content" id="eventDetailsContent">
+                <!-- Dynamic content will be populated here -->
+            </div>
+        </div>
+        
+        <!-- Venue Toggle -->
+        <div class="venue-toggle" id="venueToggle" onclick="toggleVenueDetails()" style="display: none;">
+            <span id="venueToggleText">Show Venue Details</span>
+            <span class="venue-toggle-arrow" id="venueToggleArrow">▼</span>
+        </div>
+        
+        <!-- Venue Details -->
+        <div class="venue-details" id="venueDetails">
+            <div class="venue-card">
+                <div class="venue-header">
+                    <div class="venue-name" id="venueCardName">SoFi Stadium</div>
+                    <div class="venue-logo" id="venueCardLogo">SoFi Stadium</div>
+                </div>
+                
+                <div class="venue-content">
+                    <div class="venue-info-left">
+                        <div class="venue-address" id="venueCardAddress">
+                            Address: 1001 S. Stadium Dr<br>
+                            Inglewood, CA<br>
+                            90301
+                        </div>
+                        <div class="venue-links">
+                            <span class="venue-link" onclick="openGoogleMaps()">Open in Google Maps</span>
+                        </div>
+                    </div>
+                    
+                    <div class="venue-separator"></div>
+                    
+                    <div class="venue-info-right">
+                        <div class="venue-links">
+                            <span class="venue-link" onclick="openMoreEvents()">More events at this venue</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Legacy sample event data - no longer used with dynamic API
+        // Kept for reference or fallback purposes
+        const sampleEvents = {
+            "shakira": {
+                title: "Shakira with Black Eyed Peas - Las Mujeres Ya No Lloran - World Tour",
+                dates: {
+                    localDate: "2025-08-05",
+                    localTime: "19:30:00",
+                    status: { code: "onsale" }
+                },
+                attractions: [
+                    { name: "Shakira", url: "#" },
+                    { name: "Black Eyed Peas", url: "#" }
+                ],
+                venue: { name: "SoFi Stadium" },
+                classifications: [
+                    {
+                        segment: "Music",
+                        genre: "Pop",
+                        subGenre: "",
+                        type: "",
+                        subType: ""
+                    }
+                ],
+                priceRanges: null,
+                url: "#",
+                seatmap: {
+                    staticUrl: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDMwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGVsbGlwc2UgY3g9IjE1MCIgY3k9IjEwMCIgcng9IjEzMCIgcnk9IjkwIiBmaWxsPSIjNDA3N0ZGIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMiIvPjxlbGxpcHNlIGN4PSIxNTAiIGN5PSIxMDAiIHJ4PSIxMDAiIHJ5PSI3MCIgZmlsbD0iIzQwNzdGRiIgb3BhY2l0eT0iMC44Ii8+PGVsbGlwc2UgY3g9IjE1MCIgY3k9IjEwMCIgcng9IjcwIiByeT0iNTAiIGZpbGw9IiM0MDc3RkYiIG9wYWNpdHk9IjAuNiIvPjxyZWN0IHg9IjEzMCIgeT0iODUiIHdpZHRoPSI0MCIgaGVpZ2h0PSIzMCIgZmlsbD0iIzMzMyIvPjx0ZXh0IHg9IjE1MCIgeT0iMTAzIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIj5TVEFHRTU8L3RleHQ+PC9zdmc+"
+                },
+                venueInfo: {
+                    name: "SoFi Stadium",
+                    address: { line1: "1001 S. Stadium Dr" },
+                    city: { name: "Inglewood" },
+                    state: { stateCode: "CA" },
+                    postalCode: "90301",
+                    url: "#"
+                }
+            },
+            "carnivore": {
+                title: "Carnivore A.D. , Corrupt, Dark Insanity, Exile, Diabology, He Who Sleeps, Massecutor",
+                dates: {
+                    localDate: "2025-10-16",
+                    localTime: "18:00:00",
+                    status: { code: "onsale" }
+                },
+                attractions: [],
+                venue: { name: "Whisky A Go Go" },
+                classifications: [
+                    {
+                        segment: "Music",
+                        genre: "Rock",
+                        subGenre: "Rock & Roll",
+                        type: "",
+                        subType: ""
+                    }
+                ],
+                priceRanges: [
+                    { min: 23.15, max: 620.55, currency: "USD" }
+                ],
+                url: "#",
+                seatmap: null,
+                venueInfo: {
+                    name: "Whisky A Go Go",
+                    address: { line1: "8901 Sunset Blvd" },
+                    city: { name: "West Hollywood" },
+                    state: { stateCode: "CA" },
+                    postalCode: "90069",
+                    url: "#"
+                }
+            },
+            "concert": {
+                title: "PlayStation: The Concert",
+                dates: {
+                    localDate: "2026-02-11",
+                    localTime: "20:00:00",
+                    status: { code: "onsale" }
+                },
+                attractions: [
+                    { name: "PlayStation Symphony Orchestra", url: "#" }
+                ],
+                venue: { name: "Peacock Theater - LA" },
+                classifications: [
+                    {
+                        segment: "Music",
+                        genre: "Classical",
+                        subGenre: "Performance",
+                        type: "",
+                        subType: ""
+                    }
+                ],
+                priceRanges: [
+                    { min: 45, max: 150, currency: "USD" }
+                ],
+                url: "#",
+                seatmap: null,
+                venueInfo: {
+                    name: "Peacock Theater - LA",
+                    address: { line1: "777 Chick Hearn Ct" },
+                    city: { name: "Los Angeles" },
+                    state: { stateCode: "CA" },
+                    postalCode: "90015",
+                    url: "#"
+                }
+            }
+        };
+
+        // Legacy sample table events - no longer used with dynamic API
+        // Kept for reference or fallback purposes
+        const sampleTableEvents = [
+            {
+                localDate: "2026-02-11",
+                localTime: "20:00:00",
+                images: [{ url: "https://s1.ticketm.net/dam/a/123/example-event-1.jpg" }],
+                name: "PlayStation: The Concert",
+                classifications: [{ segment: { name: "Music" } }],
+                _embedded: { venues: [{ name: "Peacock Theater - LA" }] },
+                eventKey: "concert"
+            },
+            {
+                localDate: "2025-10-16",
+                localTime: "18:00:00",
+                images: [{ url: "https://s1.ticketm.net/dam/a/456/example-event-2.jpg" }],
+                name: "Carnivore A.D. Concert",
+                classifications: [{ segment: { name: "Music" } }],
+                _embedded: { venues: [{ name: "Whisky A Go Go" }] },
+                eventKey: "carnivore"
+            },
+            {
+                localDate: "2025-08-05",
+                localTime: "19:30:00",
+                images: [{ url: "https://s1.ticketm.net/dam/a/789/example-event-3.jpg" }],
+                name: "Shakira World Tour",
+                classifications: [{ segment: { name: "Music" } }],
+                _embedded: { venues: [{ name: "SoFi Stadium" }] },
+                eventKey: "shakira"
+            }
+        ];
+
+        // Handle auto-detect location checkbox
+        document.getElementById('autoLocation').addEventListener('change', function() {
+            const locationField = document.getElementById('location');
+            if (this.checked) {
+                locationField.style.display = 'none';
+                locationField.required = false;
+            } else {
+                locationField.style.display = 'block';
+                locationField.required = true;
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous error messages
+            hideAllErrors();
+            
+            // Validate form
+            const keyword = document.getElementById('keyword').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const autoLocation = document.getElementById('autoLocation').checked;
+            const category = document.getElementById('category').value;
+            const distance = document.getElementById('distance').value || 10;
+            
+            let hasErrors = false;
+            
+            if (!keyword) {
+                showError('keywordError', 'keyword');
+                hasErrors = true;
+            }
+            
+            if (!autoLocation && !location) {
+                showError('locationError', 'location');
+                hasErrors = true;
+            }
+            
+            if (hasErrors) {
+                return;
+            }
+            
+            try {
+                // Get coordinates from location
+                let lat, lng;
+                
+                if (autoLocation) {
+                    // Use browser geolocation
+                    const position = await getCurrentPosition();
+                    lat = position.coords.latitude;
+                    lng = position.coords.longitude;
+                } else {
+                    // Use Google Geocoding API
+                    const coordinates = await getCoordinates(location);
+                    lat = coordinates.lat;
+                    lng = coordinates.lng;
+                }
+                
+                // Perform search with coordinates
+                await performSearchWithCoordinates(keyword, lat, lng, category, distance);
+                
+            } catch (error) {
+                console.error('Error during search:', error);
+                
+                // Show user-friendly error message
+                const resultsContainer = document.getElementById('resultsContainer');
+                const noRecords = document.getElementById('noRecords');
+                const resultsTable = document.getElementById('resultsTable');
+                
+                resultsContainer.style.display = 'block';
+                resultsTable.style.display = 'none';
+                noRecords.style.display = 'block';
+                noRecords.textContent = error.message || 'An error occurred while searching for events. Please try again.';
+                
+                resultsContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        function showError(errorId, fieldId) {
+            const errorElement = document.getElementById(errorId);
+            const fieldElement = document.getElementById(fieldId);
+            
+            errorElement.style.display = 'block';
+            fieldElement.style.borderColor = '#FF6B35';
+            
+            const rect = fieldElement.getBoundingClientRect();
+            const containerRect = document.querySelector('.search-container').getBoundingClientRect();
+            
+            errorElement.style.left = (rect.left - containerRect.left) + 'px';
+            errorElement.style.top = (rect.top - containerRect.top - 45) + 'px';
+            
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+                fieldElement.style.borderColor = '#555';
+            }, 3000);
+        }
+
+        function hideAllErrors() {
+            document.getElementById('keywordError').style.display = 'none';
+            document.getElementById('locationError').style.display = 'none';
+            document.getElementById('keyword').style.borderColor = '#555';
+            document.getElementById('location').style.borderColor = '#555';
+        }
+
+        // Get current position using ipinfo.io API
+        async function getCurrentPosition() {
+            try {
+                const response = await fetch('https://ipinfo.io/?token=aa679600189d48');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.loc) {
+                    const [lat, lng] = data.loc.split(',').map(Number);
+                    return {
+                        coords: {
+                            latitude: lat,
+                            longitude: lng
+                        }
+                    };
+                } else {
+                    throw new Error('Location data not available from IP service');
+                }
+            } catch (error) {
+                console.error('Error getting location from IP:', error);
+                throw new Error('Failed to auto-detect location: ' + error.message);
+            }
+        }
+
+        // Get coordinates using Google Geocoding API
+        async function getCoordinates(address) {
+            const apiKey = process.env.MAP_API_KEY;
+            const encodedAddress = encodeURIComponent(address);
+            const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${apiKey}`;
+            
+            try {
+                // Note: Direct browser calls to Google Geocoding API may face CORS issues
+                // This implementation assumes the API key is configured for browser use
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.status === 'OK' && data.results.length > 0) {
+                    const location = data.results[0].geometry.location;
+                    return {
+                        lat: location.lat,
+                        lng: location.lng
+                    };
+                } else if (data.status === 'ZERO_RESULTS') {
+                    throw new Error('Location not found. Please check the address and try again.');
+                } else if (data.status === 'REQUEST_DENIED') {
+                    throw new Error('API key invalid or request denied.');
+                } else {
+                    throw new Error(`Geocoding failed: ${data.status}`);
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                // If geocoding fails, try to use fallback coordinates (USC campus)
+                if (address.toLowerCase().includes('usc') || address.toLowerCase().includes('university of southern california')) {
+                    console.log('Using fallback USC coordinates');
+                    return {
+                        lat: 34.0223244,
+                        lng: -118.3675182
+                    };
+                }
+                throw new Error('Failed to get coordinates: ' + error.message);
+            }
+        }
+
+        // Perform search with coordinates
+        async function performSearchWithCoordinates(keyword, lat, lng, category, distance) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const noRecords = document.getElementById('noRecords');
+            const resultsTable = document.getElementById('resultsTable');
+            const tableBody = document.getElementById('resultsTableBody');
+            
+            // Clear previous results
+            tableBody.innerHTML = '';
+            resultsContainer.style.display = 'block';
+            
+            try {
+                // Map category to lowercase for API
+                const categoryParam = category === 'Default' ? '' : category.toLowerCase();
+                
+                // Build API URL
+
+
+
+                let apiUrl = `http://127.0.0.1:5000/events?keyword=${encodeURIComponent(keyword)}&lat=${lat}&lng=${lng}`;
+                if (categoryParam) {
+                    apiUrl += `&category=${categoryParam}`;
+                }
+                
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch events');
+                }
+                
+                const events = await response.json();
+                
+                // Filter events that have both event_name and event_url (not null)
+                const validEvents = events.filter(event => 
+                    event.event_name && event.event_name.trim() !== '' && 
+                    event.event_url && event.event_url.trim() !== ''
+                );
+                
+                if (validEvents.length === 0) {
+                    showNoResults();
+                } else {
+                    displayEvents(validEvents);
+                }
+                
+                resultsContainer.scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('Error fetching events:', error);
+                showNoResults();
+            }
+        }
+
+        // Display events in table
+        function displayEvents(events) {
+            const noRecords = document.getElementById('noRecords');
+            const resultsTable = document.getElementById('resultsTable');
+            const tableBody = document.getElementById('resultsTableBody');
+            
+            noRecords.style.display = 'none';
+            resultsTable.style.display = 'table';
+            
+            events.forEach((event, index) => {
+                const row = tableBody.insertRow();
+                
+                // Format date
+                const eventDate = new Date(event.date);
+                const formattedDate = eventDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                const formattedTime = eventDate.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                });
+                
+                const dateDisplay = `${formattedDate}<br>${formattedTime}`;
+                const imageUrl = event.icon || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNDAiIGZpbGw9IiNjY2MiLz4=';
+                const eventName = event.event_name;
+                const genre = event.genre || 'N/A';
+                const venueName = event.venue || 'N/A';
+                
+                row.innerHTML = `
+                    <td>${dateDisplay}</td>
+                    <td><img src="${imageUrl}" alt="Event Icon" class="event-icon" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNDAiIGZpbGw9IiNjY2MiLz4='"></td>
+                    <td><span class="event-name" onclick="showEventDetails('${event.event_id}')">${eventName}</span></td>
+                    <td>${genre}</td>
+                    <td>${venueName}</td>
+                `;
+            });
+        }
+
+        // Show no results message
+        function showNoResults() {
+            const noRecords = document.getElementById('noRecords');
+            const resultsTable = document.getElementById('resultsTable');
+            
+            noRecords.style.display = 'block';
+            noRecords.textContent = 'No records found'; // Reset to default message
+            resultsTable.style.display = 'none';
+        }
+
+        // Open event URL in new tab
+        function openEventUrl(url) {
+            if (url && url !== 'null') {
+                window.open(url, '_blank');
+            }
+        }
+
+        function performSearch() {
+            // This function is now replaced by performSearchWithCoordinates
+            // Keeping for backward compatibility but should not be used
+            console.warn('performSearch is deprecated, use performSearchWithCoordinates instead');
+        }
+
+        // Show event details by fetching from the detailed event API
+        async function showEventDetails(eventId) {
+            const eventDetailsCard = document.getElementById('eventDetailsCard');
+            
+            try {
+                // Fetch detailed event information
+                const response = await fetch(`http://127.0.0.1:5000/events/${eventId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch event details');
+                }
+                
+                const eventData = await response.json();
+                
+                // Populate event details
+                await populateEventDetails(eventData);
+                
+                // Show the event details card
+                eventDetailsCard.style.display = 'block';
+                
+                // Hide venue details when showing new event
+                document.getElementById('venueDetails').style.display = 'none';
+                document.getElementById('venueToggleText').textContent = 'Show Venue Details';
+                document.getElementById('venueToggleArrow').textContent = '▼';
+                document.querySelector('.venue-toggle-arrow').style.transform = 'rotate(0deg)';
+                
+                setTimeout(() => {
+                    eventDetailsCard.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error fetching event details:', error);
+                alert('Failed to load event details. Please try again.');
+            }
+        }
+
+        async function populateEventDetails(eventData) {
+            document.getElementById('eventDetailsTitle').textContent = eventData.event_name;
+            
+            const contentContainer = document.getElementById('eventDetailsContent');
+            contentContainer.innerHTML = '';
+            
+            const leftColumn = document.createElement('div');
+            leftColumn.className = 'event-details-left';
+            
+            const rightColumn = document.createElement('div');
+            rightColumn.className = 'event-details-right';
+            
+            // Left column content with new API structure
+            leftColumn.appendChild(createDetailItem('Date', eventData.date));
+            leftColumn.appendChild(createDetailItem('Artist/Team', eventData.artist_team, true));
+            leftColumn.appendChild(createDetailItem('Venue', eventData.venue));
+            leftColumn.appendChild(createDetailItem('Genres', eventData.genre));
+            leftColumn.appendChild(createDetailItem('Price Ranges', eventData.price_range));
+            
+            // Status badge
+            const statusClass = `status-${eventData.ticket_status}`;
+            const statusText = eventData.ticket_status === 'onsale' ? 'On Sale' : 
+                              eventData.ticket_status === 'offsale' ? 'Off Sale' :
+                              eventData.ticket_status === 'cancelled' ? 'Cancelled' :
+                              eventData.ticket_status === 'postponed' ? 'Postponed' :
+                              eventData.ticket_status === 'rescheduled' ? 'Rescheduled' : 
+                              eventData.ticket_status || 'Unknown';
+            
+            leftColumn.appendChild(createDetailItem('Ticket Status', 
+                `<span class="status-badge ${statusClass}">${statusText}</span>`, true));
+            
+            // Buy ticket link (only if available)
+            if (eventData.buy_ticket_at && eventData.buy_ticket_at !== 'N/A') {
+                leftColumn.appendChild(createDetailItem('Buy Ticket At:', 
+                    `<a href="${eventData.buy_ticket_at}" onclick="window.open(this.href, \'artistWindow\', \'width=1024,height=768,scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=no,status=no\'); return false;" target="_blank">Ticketmaster</a>`, true));
+            } else {
+                leftColumn.appendChild(createDetailItem('Buy Ticket At:', 'N/A'));
+            }
+            
+            // Right column - event image
+            if (eventData.seat_map && eventData.seat_map !== 'N/A') {
+                rightColumn.innerHTML = `
+                    
+                    <img src="${eventData.seat_map}" alt="Event Image" class="seat-map">
+                `;
+            }
+            
+            contentContainer.appendChild(leftColumn);
+            contentContainer.appendChild(rightColumn);
+            
+            // Show venue toggle now that event details are populated
+            const venueToggle = document.getElementById('venueToggle');
+            venueToggle.style.display = 'flex';
+            
+            // Update venue info for the venue details section
+            await populateVenueInfo(eventData.venue);
+        }
+
+        // Fetch venue details from API
+        async function fetchVenueDetails(venueName) {
+            try {
+                const encodedVenueName = encodeURIComponent(venueName);
+                const response = await fetch(`http://127.0.0.1:5000/venues?keyword=${encodedVenueName}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch venue details');
+                }
+                
+                const venueData = await response.json();
+                return venueData;
+            } catch (error) {
+                console.error('Error fetching venue details:', error);
+                // Return fallback venue data
+                return {
+                    name: venueName,
+                    address: 'Address not available',
+                    city: 'City not available',
+                    google_maps_url: null,
+                    venue_image_url: null,
+                    more_events_url: null
+                };
+            }
+        }
+
+        function createDetailItem(label, value, allowHTML = false) {
+            const item = document.createElement('div');
+            item.className = 'detail-item';
+            
+            const labelEl = document.createElement('div');
+            labelEl.className = 'detail-label';
+            labelEl.textContent = label;
+            
+            const valueEl = document.createElement('div');
+            valueEl.className = 'detail-value';
+            
+            if (allowHTML) {
+                valueEl.innerHTML = value;
+            } else {
+                valueEl.textContent = value;
+            }
+            
+            item.appendChild(labelEl);
+            item.appendChild(valueEl);
+            
+            return item;
+        }
+
+        async function populateVenueInfo(venueName) {
+            // Fetch venue details from API
+            const venueData = await fetchVenueDetails(venueName);
+            
+            document.getElementById('venueCardName').textContent = venueData.name;
+            
+            
+            document.getElementById('venueCardAddress').innerHTML = `
+                Address: ${venueData.address}<br>
+                ${venueData.city}
+            `;
+            
+            // Update the venue links
+            const venueLinksContainer = document.querySelector('.venue-info-left .venue-links');
+            venueLinksContainer.innerHTML = '';
+            
+            // Add Google Maps link if available
+            if (venueData.google_maps_url) {
+                const mapsLink = document.createElement('span');
+                mapsLink.className = 'venue-link';
+                mapsLink.textContent = 'Open in Google Maps';
+                mapsLink.onclick = () => window.open(venueData.google_maps_url, '_blank');
+                venueLinksContainer.appendChild(mapsLink);
+            }
+            
+            // Update the right side venue links
+            const venueRightLinksContainer = document.querySelector('.venue-info-right .venue-links');
+            venueRightLinksContainer.innerHTML = '';
+            
+            // Add More Events link if available
+            if (venueData.more_events_url) {
+                const moreEventsLink = document.createElement('span');
+                moreEventsLink.className = 'venue-link';
+                moreEventsLink.textContent = 'More events at this venue';
+                moreEventsLink.onclick = () => window.open(venueData.more_events_url, '_blank');
+                venueRightLinksContainer.appendChild(moreEventsLink);
+            }
+            
+            // Update venue image if available
+            const venueCardElement = document.querySelector('.venue-card');
+            const existingImage = venueCardElement.querySelector('.venue-image');
+            if (existingImage) {
+                existingImage.remove();
+            }
+            
+            if (venueData.venue_image_url) {
+                const venueLogoContainer = document.getElementById('venueCardLogo');
+                venueLogoContainer.innerHTML = ''; // Clear existing content
+
+                if (venueData.venue_image_url && venueData.venue_image_url !== 'N/A') {
+                    const venueImage = document.createElement('img');
+                    venueImage.className = 'venue-image';
+                    venueImage.src = venueData.venue_image_url;
+                    venueImage.alt = `${venueData.name} Image`;
+                    venueImage.style.cssText = 'width: 100%; max-height: 60px; object-fit: contain;';
+                    
+                    venueLogoContainer.appendChild(venueImage);
+                } else {
+                    // If no image, display venue name as text
+                    venueLogoContainer.textContent = venueData.name;
+                }
+            }
+        }
+
+        function toggleVenueDetails() {
+            const venueDetails = document.getElementById('venueDetails');
+            const arrow = document.getElementById('venueToggleArrow');
+            const text = document.getElementById('venueToggleText');
+            const arrowElement = document.querySelector('.venue-toggle-arrow');
+            
+            if (venueDetails.style.display === 'none' || venueDetails.style.display === '') {
+                venueDetails.style.display = 'block';
+                arrow.textContent = '▲';
+                text.textContent = 'Hide Venue Details';
+                arrowElement.style.transform = 'rotate(180deg)';
+                
+                // Smooth scroll to venue details with better timing
+                setTimeout(() => {
+                    venueDetails.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }, 150);
+            } else {
+                venueDetails.style.display = 'none';
+                arrow.textContent = '▼';
+                text.textContent = 'Show Venue Details';
+                arrowElement.style.transform = 'rotate(0deg)';
+                
+                // Scroll back to the toggle button when closing
+                setTimeout(() => {
+                    document.getElementById('venueToggle').scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }, 100);
+            }
+        }
+
+        function openGoogleMaps() {
+            console.log('Google Maps functionality is now handled dynamically in venue details');
+        }
+
+        function openMoreEvents() {
+            console.log('More events functionality is now handled dynamically in venue details');
+        }
+
+        function clearForm() {
+            document.getElementById('searchForm').reset();
+            document.getElementById('distance').placeholder = '10';
+            document.getElementById('location').value = '';
+            document.getElementById('autoLocation').checked = false;
+            document.getElementById('location').style.display = 'block';
+            document.getElementById('location').required = true;
+            
+            document.getElementById('resultsContainer').style.display = 'none';
+            document.getElementById('eventDetailsCard').style.display = 'none';
+            
+            hideAllErrors();
+        }
+
+        // Global variable to track current sort state
+        let currentSort = { column: -1, direction: 'asc' };
+
+        function sortTable(columnIndex) {
+            const table = document.getElementById('resultsTable');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            // If no rows to sort, return early
+            if (rows.length === 0) {
+                return;
+            }
+            
+            // Determine sort direction
+            let direction = 'asc';
+            if (currentSort.column === columnIndex && currentSort.direction === 'asc') {
+                direction = 'desc';
+            }
+            
+            // Update current sort state
+            currentSort = { column: columnIndex, direction: direction };
+            
+            // Sort rows based on column content
+            rows.sort((a, b) => {
+                let aText = '';
+                let bText = '';
+                
+                // Get text content from the specific column
+                const aCells = a.querySelectorAll('td');
+                const bCells = b.querySelectorAll('td');
+                
+                if (aCells[columnIndex] && bCells[columnIndex]) {
+                    // For Event column, get text from the span element
+                    if (columnIndex === 2) {
+                        const aSpan = aCells[columnIndex].querySelector('.event-name');
+                        const bSpan = bCells[columnIndex].querySelector('.event-name');
+                        aText = aSpan ? aSpan.textContent.trim() : '';
+                        bText = bSpan ? bSpan.textContent.trim() : '';
+                    } else {
+                        // For Genre and Venue columns, get direct text content
+                        aText = aCells[columnIndex].textContent.trim();
+                        bText = bCells[columnIndex].textContent.trim();
+                    }
+                }
+                
+                // Handle empty values
+                if (aText === 'N/A') aText = '';
+                if (bText === 'N/A') bText = '';
+                
+                // Perform comparison
+                let comparison = 0;
+                if (aText.toLowerCase() < bText.toLowerCase()) {
+                    comparison = -1;
+                } else if (aText.toLowerCase() > bText.toLowerCase()) {
+                    comparison = 1;
+                }
+                
+                // Apply sort direction
+                return direction === 'asc' ? comparison : -comparison;
+            });
+            
+            // Clear tbody and re-append sorted rows
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+            
+            // Update column headers to show sort indicator
+            updateSortIndicators(columnIndex, direction);
+        }
+        
+        function updateSortIndicators(activeColumn, direction) {
+            // Remove all existing sort indicators
+            const headers = document.querySelectorAll('#resultsTable th');
+            headers.forEach((header, index) => {
+                // Only update headers that have onclick events (columns 2, 3, 4)
+                if (index === 2 || index === 3 || index === 4) {
+                    let headerText = header.textContent.replace(/\s*[↑↓]\s*$/, ''); // Remove existing arrows
+                    
+                    if (index === activeColumn) {
+                        // Add sort indicator to active column
+                        headerText += direction === 'asc' ? ' ↑' : ' ↓';
+                    }
+                    
+                    header.textContent = headerText;
+                    
+                    // Add visual feedback
+                    if (index === activeColumn) {
+                        header.style.backgroundColor = 'rgba(78, 205, 196, 0.3)';
+                    } else {
+                        header.style.backgroundColor = '';
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('location').value = '';
+            document.getElementById('distance').placeholder = '10';
+        });
+    </script>
+</body>
+</html>

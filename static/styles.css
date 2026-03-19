@@ -1,0 +1,555 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Times New Roman', Times, serif;
+    background-image: url('background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    padding: 50px 20px;
+}
+
+
+.search-container {
+    background-color: rgba(70, 70, 70, 0.55);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 40px;
+    width: 100%;
+    max-width: 700px;
+}
+
+.search-title {
+    color: white;
+    text-align: center;
+    font-size: 32px;
+    font-weight: normal;
+    margin-bottom: 40px;
+    border-bottom: 1px solid #666;
+    padding-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-row {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.form-col {
+    flex: 1;
+}
+
+label {
+    display: block;
+    color: #4ECDC4;
+    font-size: 16px;
+    margin-bottom: 8px;
+    font-weight: normal;
+}
+
+.required::after {
+    content: " *";
+    color: red;
+}
+
+input[type="text"], input[type="number"], select {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #555;
+    border-radius: 5px;
+    background-color: #555;
+    color: white;
+    font-size: 16px;
+    outline: none;
+}
+
+input[type="text"]::placeholder, input[type="number"]::placeholder {
+    color: #aaa;
+}
+
+input[type="text"]:focus, input[type="number"]:focus, select:focus {
+    border-color: #4ECDC4;
+}
+
+select {
+    cursor: pointer;
+}
+
+select option {
+    background-color: #555;
+    color: white;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.3);
+    cursor: pointer;
+}
+
+.checkbox-label {
+    color: #aaa;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.button-group {
+    display: flex;
+    gap: 25px;
+    justify-content: center;
+    margin-top: 40px;
+}
+
+button {
+    padding: 15px 40px;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 120px;
+}
+
+.search-btn {
+    background-color: #FF6B35;
+    color: white;
+}
+
+.search-btn:hover {
+    background-color: #e55a2b;
+    transform: scale(1.2);
+}
+
+.clear-btn {
+    background-color: #4a69bd;
+    color: white;
+}
+
+.clear-btn:hover {
+    background-color: #3c5aa6;
+    transform: scale(1.2);
+}
+
+.results-container {
+    margin-top: 40px;
+    width: 90%;
+    display: none;
+}
+
+.results-table {
+    width: 100%;
+    background-color: white;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* .results-table th {
+    background-color: #f8f9fa;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    border-bottom: 2px solid #dee2e6;
+    cursor: pointer;
+    user-select: none;
+}
+
+.results-table th:hover {
+    background-color: #e9ecef;
+}
+
+.results-table td {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 14px;
+}
+
+.results-table tbody tr:hover {
+    background-color: #f8f9fa;
+} */
+
+.results-table th {
+    background-color: #f8f9fa;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    border: 1px solid #000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    user-select: none;
+}
+
+.results-table th:hover {
+    background-color: #e9ecef;
+}
+
+.results-table td {
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #000;
+    font-size: 14px;
+}
+
+.results-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.results-table {
+    border: 1px solid #000;
+    border-collapse: collapse;
+}
+
+.event-name {
+    color: #007bff;
+    cursor: pointer;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.event-name:hover {
+    color: #0056b3;
+}
+
+.event-icon {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.no-records {
+    text-align: center;
+    color: red;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 30px;
+    background-color: white;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+/* Event Details Card - Fixed to match exact layout */
+.event-details-card {
+    background-color: rgba(50, 50, 50, 0.4);
+    border-radius: 15px;
+    padding: 40px;
+    margin-top: 30px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    display: none;
+    color: white;
+    position: relative;
+    backdrop-filter: blur(2px);
+}
+
+.event-details-title {
+    font-size: 28px;
+    margin-bottom: 30px;
+    text-align: center;
+    color: white;
+}
+
+/* Two column layout for event details - left side details, right side seat map */
+.event-details-content {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 30px;
+    align-items: flex-start;
+}
+
+.event-details-left {
+    flex: 1;
+}
+
+.event-details-right {
+    flex: 0 0 300px;
+    text-align: center;
+}
+
+.detail-item {
+    margin-bottom: 20px;
+}
+
+.detail-label {
+    color: #4ECDC4;
+    margin-bottom: 8px;
+    font-size: 24px;
+}
+
+.detail-value {
+    color: white;
+    font-size: 20px;
+    line-height: 1.4;
+}
+
+.detail-value a {
+    color: #4a9eff;
+    text-decoration: underline;
+}
+
+.detail-value a:hover {
+    color: #ffffff;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.status-onsale {
+    background-color: #28a745;
+    color: white;
+}
+
+.status-offsale {
+    background-color: #dc3545;
+    color: white;
+}
+
+.status-cancelled {
+    background-color: #000000;
+    color: white;
+}
+
+.status-postponed, .status-rescheduled {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.seat-map {
+    width: 500px;
+    height: auto;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.venue-toggle {
+    padding: 20px 30px;
+    border-radius: 15px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    margin: 30px auto;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    position: relative;
+    overflow: hidden;
+}
+
+.venue-toggle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.venue-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+}
+
+.venue-toggle:hover::before {
+    left: 100%;
+}
+
+.venue-toggle-arrow {
+    font-size: 20px;
+    transition: transform 0.3s;
+}
+
+/* Venue Details - White card style like SoFi Stadium */
+.venue-details {
+    display: none;
+    margin-top: 20px;
+}
+
+.venue-card {
+    background-color: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.venue-card::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 1px solid rgba(0, 0, 0);
+    border-radius: 10px;
+    pointer-events: none;
+}
+
+.venue-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+}
+
+.venue-name {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.venue-logo {
+    font-size: 32px;
+    font-weight: bold;
+    color: #00a8cc;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+.venue-content {
+    display: flex;
+    gap: 60px;
+    align-items: flex-start;
+}
+
+.venue-info-left {
+    flex: 1;
+}
+
+.venue-info-right {
+    flex: 1;
+    text-align: right;
+}
+
+.venue-address {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.venue-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.venue-link {
+    color: #007bff;
+    text-decoration: underline;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.venue-link:hover {
+    color: #0056b3;
+}
+
+.venue-separator {
+    width: 2px;
+    height: 90px;
+    background-color: rgba(0, 0, 0, 0.2);
+    margin: 0 20px;
+}
+
+.error-tooltip {
+    background-color: #FF6B35;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    position: absolute;
+    z-index: 1000;
+    display: none;
+    white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.error-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #FF6B35;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        padding: 30px 20px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .event-details-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .event-details-right {
+        flex: none;
+    }
+    
+    .venue-content {
+        flex-direction: column;
+        gap: 30px;
+        text-align: center;
+    }
+    
+    .venue-info-right {
+        text-align: center;
+    }
+    
+    .button-group {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    button {
+        width: 100%;
+    }
+}

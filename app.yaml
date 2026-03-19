@@ -1,0 +1,14 @@
+runtime: python311
+entrypoint: gunicorn -b :$PORT main:ticketdemo
+
+instance_class: F1
+
+automatic_scaling:
+  max_instances: 2
+
+handlers:
+- url: /static
+  static_dir: static
+  
+- url: /.*
+  script: auto 
